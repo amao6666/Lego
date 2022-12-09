@@ -1,0 +1,13 @@
+/NOLOGO
+/errorReport:prompt
+/MACHINE:x64
+/SUBSYSTEM:WINDOWS
+/DEF
+/NAME:"UnrealEditor-AdvancedSteamSessions.dll"
+/IGNORE:4221
+/NODEFAULTLIB
+"D:\Workspace\CPPProject\UnrealCPP\Lego\Intermediate\Build\Win64\LegoGameEditor\Development\Engine\SharedPCH.Engine.ShadowErrors.h.obj"
+"D:\Workspace\CPPProject\UnrealCPP\Lego\Plugins\AdvancedSession\Plugins\AdvancedSteamSessions\Intermediate\Build\Win64\UnrealEditor\Development\AdvancedSteamSessions\Module.AdvancedSteamSessions.cpp.obj"
+"D:\Workspace\CPPProject\UnrealCPP\Lego\Plugins\AdvancedSession\Plugins\AdvancedSteamSessions\Intermediate\Build\Win64\UnrealEditor\Development\AdvancedSteamSessions\Module.AdvancedSteamSessions.gen.cpp.obj"
+"D:\Workspace\CPPProject\UnrealCPP\Lego\Plugins\AdvancedSession\Plugins\AdvancedSteamSessions\Intermediate\Build\Win64\UnrealEditor\Development\AdvancedSteamSessions\Default.rc2.res"
+/OUT:"D:\Workspace\CPPProject\UnrealCPP\Lego\Plugins\AdvancedSession\Plugins\AdvancedSteamSessions\Intermediate\Build\Win64\UnrealEditor\Development\AdvancedSteamSessions\UnrealEditor-AdvancedSteamSessions.lib"
