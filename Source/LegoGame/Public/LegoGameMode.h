@@ -15,4 +15,7 @@ class LEGOGAME_API ALegoGameMode : public AGameMode
 	GENERATED_BODY()
 public:
 	ALegoGameMode();
+
+protected:
+	virtual void BeginPlay() override;
 };

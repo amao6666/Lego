@@ -3,9 +3,18 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GenericTeamAgentInterface.h"
 #include "GameFramework/Character.h"
 #include "Interface/SkinInterface.h"
 #include "LGCharacterBase.generated.h"
+
+UENUM()
+enum class ETeamColor
+{
+	ETC_Red,
+	ETC_Blue,
+	ETC_Yellow
+};
 
 class AWeaponActor;
 class ALGCharacterBase;
@@ -13,7 +22,7 @@ class ALGCharacterBase;
 DECLARE_MULTICAST_DELEGATE_OneParam(NotifyDamage, ALGCharacterBase*);
 
 UCLASS()
-class LEGOGAME_API ALGCharacterBase : public ACharacter, public ISkinInterface
+class LEGOGAME_API ALGCharacterBase : public ACharacter, public ISkinInterface, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -26,6 +35,12 @@ protected:
 	bool bIsSprint;
 	bool bIsAiming;
 	bool bIsFire;
+	UPROPERTY(VisibleAnywhere)
+	UBillboardComponent* BillboardComponent;
+	UPROPERTY(EditAnywhere)
+	ETeamColor TeamColor;
+
+	virtual void OnConstruction(const FTransform& Transform) override;
 	
 	UPROPERTY(VisibleAnywhere)
 	class UPackageActorComponent* PackageComponent;
@@ -38,6 +53,8 @@ protected:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual USkeletalMeshComponent* GetSkinSkeletalMeshComponent() override;
+
+	virtual FGenericTeamId GetGenericTeamId() const override;
 
 	void DoCrouch();
 
@@ -60,6 +77,7 @@ public:
 	bool GetIsAiming();
 	bool IsHoldWeapon();
 	void SetBlockView(bool bIsBlockView);
+	ETeamColor GetTeamColor() const;
 	AWeaponActor* GetHoldWeapon(); 
 	UPackageActorComponent* GetPackageComponent();
 	USkinActorComponent* GetSkinComponent();

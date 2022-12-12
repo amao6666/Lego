@@ -2,6 +2,8 @@
 
 
 #include "Character/LGCharacterBase.h"
+
+#include "Components/BillboardComponent.h"
 #include "Components/LGCharacterMovementComponent.h"
 #include "Components/PackageActorComponent.h"
 #include "Components/SkinActorComponent.h"
@@ -16,6 +18,35 @@ ALGCharacterBase::ALGCharacterBase(const FObjectInitializer& ObjectInitializer)
 	PackageComponent = CreateDefaultSubobject<UPackageActorComponent>(TEXT("PackageComp"));
 
 	SkinComponent = CreateDefaultSubobject<USkinActorComponent>(TEXT("SkinComp"));
+	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"));
+	BillboardComponent->SetupAttachment(RootComponent);
+	BillboardComponent->SetRelativeLocation(FVector(0, 0, 160));
+}
+
+void ALGCharacterBase::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	if (IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController()))
+	{
+		//根据自己当前的阵营标记，更改广告牌的内容
+		if (BillboardComponent)
+		{
+			TCHAR* Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/1.1'");
+			FGenericTeamId TeamId = TeamInterface->GetGenericTeamId();
+			
+			if (TeamId.GetId() == 1)
+			{
+				Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/2.2'");
+			}
+			else if (TeamId.GetId() == 2)
+			{
+				Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/3.3'");
+			}
+		
+			UTexture2D* Icon = LoadObject<UTexture2D>(this, Path);
+			BillboardComponent->SetSprite(Icon);
+		}
+	}
 }
 
 // Called when the game starts or when spawned
@@ -42,6 +73,15 @@ void ALGCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 USkeletalMeshComponent* ALGCharacterBase::GetSkinSkeletalMeshComponent()
 {
 	return GetMesh();
+}
+
+FGenericTeamId ALGCharacterBase::GetGenericTeamId() const
+{
+	if (IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController()))
+	{
+		return TeamInterface->GetGenericTeamId();
+	}
+	return FGenericTeamId::NoTeam;
 }
 
 void ALGCharacterBase::DoCrouch()
@@ -140,6 +180,11 @@ void ALGCharacterBase::SetBlockView(bool bIsBlockView)
 {
 	bUseControllerRotationYaw = bIsBlockView;
 	GetCharacterMovement()->bOrientRotationToMovement = !bIsBlockView;
+}
+
+ETeamColor ALGCharacterBase::GetTeamColor() const
+{
+	return TeamColor;
 }
 
 AWeaponActor* ALGCharacterBase::GetHoldWeapon()

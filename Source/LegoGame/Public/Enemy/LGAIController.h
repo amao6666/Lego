@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AIController.h"
+#include "Character/LGCharacterBase.h"
 #include "LGAIController.generated.h"
 
 /**
@@ -14,6 +15,15 @@ class LEGOGAME_API ALGAIController : public AAIController
 {
 	GENERATED_BODY()
 
+public:
+	ALGAIController();
+	
 protected:
+	UPROPERTY(EditAnywhere)
+	ETeamColor TeamColor;
+	
 	virtual void OnPossess(APawn* InPawn) override;
+	//virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+
+	virtual FGenericTeamId GetGenericTeamId() const override;
 };
