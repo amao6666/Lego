@@ -23,7 +23,7 @@ protected:
 	ETeamColor TeamColor;
 	
 	virtual void OnPossess(APawn* InPawn) override;
-	//virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
+	virtual ETeamAttitude::Type GetTeamAttitudeTowards(const AActor& Other) const override;
 
 	virtual FGenericTeamId GetGenericTeamId() const override;
 };

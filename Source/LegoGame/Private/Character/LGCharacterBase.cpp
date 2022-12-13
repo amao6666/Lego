@@ -7,7 +7,9 @@
 #include "Components/LGCharacterMovementComponent.h"
 #include "Components/PackageActorComponent.h"
 #include "Components/SkinActorComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Weapon/WeaponActor.h"
+#include "LegoGame/LegoGame.h"
 
 // Sets default values
 ALGCharacterBase::ALGCharacterBase(const FObjectInitializer& ObjectInitializer)
@@ -21,31 +23,49 @@ ALGCharacterBase::ALGCharacterBase(const FObjectInitializer& ObjectInitializer)
 	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"));
 	BillboardComponent->SetupAttachment(RootComponent);
 	BillboardComponent->SetRelativeLocation(FVector(0, 0, 160));
+	MaxHP = 100;
 }
 
 void ALGCharacterBase::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	if (IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController()))
+	// if (IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController()))
+	// {
+	// 	//根据自己当前的阵营标记，更改广告牌的内容
+	// 	if (BillboardComponent)
+	// 	{
+	// 		TCHAR* Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/1.1'");
+	// 		FGenericTeamId TeamId = TeamInterface->GetGenericTeamId();
+	// 		
+	// 		if (TeamId.GetId() == 1)
+	// 		{
+	// 			Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/2.2'");
+	// 		}
+	// 		else if (TeamId.GetId() == 2)
+	// 		{
+	// 			Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/3.3'");
+	// 		}
+	// 	
+	// 		UTexture2D* Icon = LoadObject<UTexture2D>(this, Path);
+	// 		BillboardComponent->SetSprite(Icon);
+	// 	}
+	// }
+	//根据自己当前的阵营标记，更改广告牌的内容
+	if (BillboardComponent)
 	{
-		//根据自己当前的阵营标记，更改广告牌的内容
-		if (BillboardComponent)
-		{
-			TCHAR* Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/1.1'");
-			FGenericTeamId TeamId = TeamInterface->GetGenericTeamId();
+		TCHAR* Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/1.1'");
+		FGenericTeamId TeamId = GetGenericTeamId();
 			
-			if (TeamId.GetId() == 1)
-			{
-				Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/2.2'");
-			}
-			else if (TeamId.GetId() == 2)
-			{
-				Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/3.3'");
-			}
-		
-			UTexture2D* Icon = LoadObject<UTexture2D>(this, Path);
-			BillboardComponent->SetSprite(Icon);
+		if (TeamId.GetId() == 1)
+		{
+			Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/2.2'");
 		}
+		else if (TeamId.GetId() == 2)
+		{
+			Path = TEXT("Texture2D'/Game/Lego/Textures/MapIcons/3.3'");
+		}
+		UTexture2D* Icon = LoadObject<UTexture2D>(this, Path);
+		BillboardComponent->SetSprite(Icon);
 	}
 }
 
@@ -55,6 +75,7 @@ void ALGCharacterBase::BeginPlay()
 	Super::BeginPlay();
 	PackageComponent->OnSkinPuton.AddUObject(SkinComponent, &USkinActorComponent::OnSkinPuton);
 	PackageComponent->OnSkinTakeoff.AddUObject(SkinComponent, &USkinActorComponent::OnSkinTakeoff);
+	HP = MaxHP;
 }
 
 // Called every frame
@@ -77,11 +98,20 @@ USkeletalMeshComponent* ALGCharacterBase::GetSkinSkeletalMeshComponent()
 
 FGenericTeamId ALGCharacterBase::GetGenericTeamId() const
 {
-	if (IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController()))
+	// if (IGenericTeamAgentInterface* TeamInterface = Cast<IGenericTeamAgentInterface>(GetController()))
+	// {
+	// 	return TeamInterface->GetGenericTeamId();
+	// }
+	// return FGenericTeamId::NoTeam;
+	if (TeamColor == ETeamColor::ETC_Blue)
 	{
-		return TeamInterface->GetGenericTeamId();
+		return TeamID_Blue;
 	}
-	return FGenericTeamId::NoTeam;
+	else if (TeamColor == ETeamColor::ETC_Yellow)
+	{
+		return TeamID_Yellow;
+	}
+	return TeamID_Red;
 }
 
 void ALGCharacterBase::DoCrouch()
@@ -147,6 +177,29 @@ void ALGCharacterBase::DoReload()
 float ALGCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator,
                                    AActor* DamageCauser)
 {
+	if (HP <= 0)
+	{
+		return 0;
+	}
+
+	HP--;
+
+	if (HP <= 0)
+	{
+		//解除控制
+		GetController()->UnPossess();
+		//布娃娃模拟
+		GetMesh()->SetSimulatePhysics(true);
+		//添加冲力
+		const FPointDamageEvent* PointDamageEvent = static_cast<const FPointDamageEvent*>(&DamageEvent);
+		//枪械到击中点
+		FVector ForceDir = (PointDamageEvent->HitInfo.Location - DamageCauser->GetActorLocation()).GetSafeNormal();
+
+		GetMesh()->AddImpulse(ForceDir * 2000, PointDamageEvent->HitInfo.BoneName, true);
+
+		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		
+	}
 	if (OnDamaged.IsBound())
 	{
 		OnDamaged.Broadcast(Cast<ALGCharacterBase>(EventInstigator->GetPawn()));

@@ -72,6 +72,7 @@ void AWeaponActor::SpawnDamage()
 		if (IsValid(HitResult.GetActor()))
 		{
 			FPointDamageEvent Event;
+			Event.HitInfo = HitResult;
 			HitResult.GetActor()->TakeDamage(1, Event, MyMaster->GetController(), this);
 		}
 	}
@@ -116,7 +117,25 @@ void AWeaponActor::GetFirePositionAndDirection(FVector& Position, FVector& Direc
 		else
 		{
 			// 如过是Enemy
-			
+			Direction = MyMaster->GetControlRotation().Vector();
+
+			FHitResult Hit;
+
+			//设置忽略目标
+			FCollisionQueryParams Params;
+			Params.AddIgnoredActor(MyMaster);
+		
+			if (GetWorld()->LineTraceSingleByChannel(Hit, GetActorLocation(), GetActorLocation() + Direction * 50000, ECC_WeaponTrace, Params))
+			{
+				// // Direction = (Hit.Location - Position);
+				// //UE_LOG(LogTemp, Log, TEXT("=== %s"), *Hit.Actor->GetName());
+				// if (Hit.Actor.IsValid())
+				// {
+				// 	UE_LOG(LogTemp, Log, TEXT("=== %s"), *Hit.Actor->GetName());
+				// }
+				// DrawDebugLine(GetWorld(), Position, Hit.Location, FColor::Green, false, 5);
+				Direction = (Hit.Location - Position).GetSafeNormal();
+			}
 		}
 	}
 }
@@ -177,9 +196,9 @@ int32 AWeaponActor::GetCurrentBulletNumber()
 	return CurrentBulletNumber;
 }
 
-void AWeaponActor::ReloadBullets()
+float AWeaponActor::ReloadBullets()
 {
-	if (CurrentState == EWeaponState::Reload) return;
+	if (CurrentState == EWeaponState::Reload) return 0.f;
 	if (CurrentState == EWeaponState::Fire)
 	{
 		EndFire();
@@ -187,8 +206,9 @@ void AWeaponActor::ReloadBullets()
 	CurrentState = EWeaponState::Reload;
 	if (ReloadMontage && MyMaster)
 	{
-		MyMaster->PlayAnimMontage(ReloadMontage);
+	 return	MyMaster->PlayAnimMontage(ReloadMontage);
 	}
+	return 0.f;
 }
 
 void AWeaponActor::FinishReload()

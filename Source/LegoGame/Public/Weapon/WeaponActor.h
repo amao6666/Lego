@@ -47,7 +47,7 @@ public:
 	void SetMaxBulletNumber(int32 Number);
 	int32 GetMaxBulletNumber();
 	int32 GetCurrentBulletNumber();
-	void ReloadBullets();
+	float ReloadBullets();
 	void FinishReload();
 	EWeaponState GetCurrentState();
 
@@ -71,6 +71,7 @@ protected:
 	FTimerHandle FireTimerHandle;
 
 	float LastToggleTime;
+	UPROPERTY()
 	ALGCharacterBase* MyMaster;
 
 	EWeaponState CurrentState;

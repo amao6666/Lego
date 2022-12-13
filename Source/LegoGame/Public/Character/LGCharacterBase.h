@@ -39,6 +39,9 @@ protected:
 	UBillboardComponent* BillboardComponent;
 	UPROPERTY(EditAnywhere)
 	ETeamColor TeamColor;
+	int32 HP;
+	UPROPERTY(EditAnywhere)
+	int32 MaxHP;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	
@@ -65,7 +68,9 @@ protected:
 	void StartAim();
 	void EndAim();
 
+	UFUNCTION(BlueprintCallable)
 	void StartFire();
+	UFUNCTION(BlueprintCallable)
 	void EndFire();
 
 	void DoReload();

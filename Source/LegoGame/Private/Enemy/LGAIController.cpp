@@ -29,21 +29,29 @@ void ALGAIController::OnPossess(APawn* InPawn)
 	}
 }
 
-// ETeamAttitude::Type ALGAIController::GetTeamAttitudeTowards(const AActor& Other) const
-// {
-// 	if (const ALGCharacterBase* OtherCharacter = Cast<const ALGCharacterBase>(&Other))
-// 	{
-// 		if (ALGCharacterBase* MyCharacter = Cast<ALGCharacterBase>(GetPawn()))
-// 		{
-// 			if (OtherCharacter->GetTeamColor() == ETeamColor::ETC_Yellow || MyCharacter->GetTeamColor() == ETeamColor::ETC_Yellow)
-// 			{
-// 				return ETeamAttitude::Neutral;
-// 			}
-// 			return OtherCharacter->GetTeamColor() == MyCharacter->GetTeamColor() ? ETeamAttitude::Friendly : ETeamAttitude::Hostile;
-// 		}
-// 	}
-// 	return ETeamAttitude::Neutral;
-// }
+ETeamAttitude::Type ALGAIController::GetTeamAttitudeTowards(const AActor& Other) const
+{
+	// if (const ALGCharacterBase* OtherCharacter = Cast<const ALGCharacterBase>(&Other))
+	// {
+	// 	if (ALGCharacterBase* MyCharacter = Cast<ALGCharacterBase>(GetPawn()))
+	// 	{
+	// 		if (OtherCharacter->GetTeamColor() == ETeamColor::ETC_Yellow || MyCharacter->GetTeamColor() == ETeamColor::ETC_Yellow)
+	// 		{
+	// 			return ETeamAttitude::Neutral;
+	// 		}
+	// 		return OtherCharacter->GetTeamColor() == MyCharacter->GetTeamColor() ? ETeamAttitude::Friendly : ETeamAttitude::Hostile;
+	// 	}
+	// }
+	// return ETeamAttitude::Neutral;
+	if (IGenericTeamAgentInterface* MyTeamAgent = Cast<IGenericTeamAgentInterface>(GetPawn()))
+	{
+		if (const IGenericTeamAgentInterface* OtherTeamAgent = Cast<const IGenericTeamAgentInterface>(&Other))
+		{
+			return FGenericTeamId::GetAttitude(MyTeamAgent->GetGenericTeamId(), OtherTeamAgent->GetGenericTeamId());
+		}
+	}
+	return ETeamAttitude::Neutral;
+}
 
 FGenericTeamId ALGAIController::GetGenericTeamId() const
 {
