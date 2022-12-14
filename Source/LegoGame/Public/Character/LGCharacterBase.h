@@ -32,6 +32,7 @@ public:
 	NotifyDamage OnDamaged;
 
 protected:
+	UPROPERTY(Replicated)
 	bool bIsSprint;
 	bool bIsAiming;
 	bool bIsFire;
@@ -76,10 +77,17 @@ protected:
 	void DoReload();
 
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-	
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	///NET
+	///
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ChangeSprint(bool bOutSprint);
 public:
 	bool GetIsSprint();
 	bool GetIsAiming();
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	bool GetIsDead();
 	bool IsHoldWeapon();
 	void SetBlockView(bool bIsBlockView);
 	ETeamColor GetTeamColor() const;

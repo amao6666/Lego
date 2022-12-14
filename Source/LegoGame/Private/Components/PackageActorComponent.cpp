@@ -16,8 +16,7 @@ UPackageActorComponent::UPackageActorComponent()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
+	PrimaryComponentTick.bCanEverTick = false;
 	// ...
 }
 
@@ -70,6 +69,34 @@ void UPackageActorComponent::SpawnNearSceneItemActor(int32 OutID)
 		ASceneItemActor* SceneItemActor = GetWorld()->SpawnActorDeferred<ASceneItemActor>(ASceneItemActor::StaticClass(), Transform);
 		SceneItemActor->SetID(OutID);
 		SceneItemActor->FinishSpawning(Transform);
+	}
+}
+
+void UPackageActorComponent::Server_PutonSkin_Implementation(ASceneItemActor* SceneItemActor, ESkinType Type)
+{
+	PutonSkin(SceneItemActor, Type);
+}
+
+bool UPackageActorComponent::Server_PutonSkin_Validate(ASceneItemActor* SceneItemActor, ESkinType Type)
+{
+	return true;
+}
+
+void UPackageActorComponent::Multi_PutonSkin_Implementation(ESkinType Type, int32 ID)
+{
+	//添加数据
+	if (SkinsMap.Contains(Type))
+	{
+		SkinsMap[Type] = ID;
+	}
+	else
+	{
+		SkinsMap.Add(Type, ID);
+	}
+	//更新外观
+	if (OnSkinPuton.IsBound())
+	{
+		OnSkinPuton.Broadcast(Type, ID);
 	}
 }
 
@@ -146,14 +173,11 @@ void UPackageActorComponent::PutonSkin(ASceneItemActor* SceneItemActor, ESkinTyp
 	//如果之前有穿过部件皮肤，需要先脱掉
 	TakeoffSkin(SkinType, false);
 
-	//添加数据
-	SkinsMap.Add(SkinType, SceneItemActor->GetID());
-
-	//更新外观
-	if (OnSkinPuton.IsBound())
+	if (GetOwner()->HasAuthority())
 	{
-		OnSkinPuton.Broadcast(SkinType, SceneItemActor->GetID());
+		Multi_PutonSkin(SkinType, SceneItemActor->GetID());
 	}
+	
 	SceneItemActor->Destroy();
 }
 

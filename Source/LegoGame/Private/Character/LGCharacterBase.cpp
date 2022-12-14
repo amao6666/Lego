@@ -10,6 +10,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Weapon/WeaponActor.h"
 #include "LegoGame/LegoGame.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 ALGCharacterBase::ALGCharacterBase(const FObjectInitializer& ObjectInitializer)
@@ -18,7 +19,7 @@ ALGCharacterBase::ALGCharacterBase(const FObjectInitializer& ObjectInitializer)
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	PackageComponent = CreateDefaultSubobject<UPackageActorComponent>(TEXT("PackageComp"));
-
+	PackageComponent->SetIsReplicated(true);
 	SkinComponent = CreateDefaultSubobject<USkinActorComponent>(TEXT("SkinComp"));
 	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"));
 	BillboardComponent->SetupAttachment(RootComponent);
@@ -136,11 +137,19 @@ void ALGCharacterBase::StartSprint()
 	if (bIsFire) EndFire();
 	if (bIsCrouched) return;
 	bIsSprint = true;
+	if (!HasAuthority())
+	{
+		Server_ChangeSprint(true);
+	}
 }
 
 void ALGCharacterBase::EndSprint()
 {
 	bIsSprint = false;
+	if (!HasAuthority())
+	{
+		Server_ChangeSprint(false);
+	}
 }
 
 void ALGCharacterBase::StartAim()
@@ -207,6 +216,29 @@ float ALGCharacterBase::TakeDamage(float DamageAmount, FDamageEvent const& Damag
 	return 0;
 }
 
+void ALGCharacterBase::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ALGCharacterBase, bIsSprint);
+}
+
+void ALGCharacterBase::Server_ChangeSprint_Implementation(bool bOutSprint)
+{
+	if (bOutSprint)
+	{
+		StartSprint();
+	}
+	else
+	{
+		EndSprint();
+	}
+}
+
+bool ALGCharacterBase::Server_ChangeSprint_Validate(bool bOutSprint)
+{
+	return true;
+}
+
 bool ALGCharacterBase::GetIsSprint()
 {
 	if (IsHoldWeapon())
@@ -222,6 +254,11 @@ bool ALGCharacterBase::GetIsSprint()
 bool ALGCharacterBase::GetIsAiming()
 {
 	return bIsAiming;
+}
+
+bool ALGCharacterBase::GetIsDead()
+{
+	return HP <= 0;
 }
 
 bool ALGCharacterBase::IsHoldWeapon()

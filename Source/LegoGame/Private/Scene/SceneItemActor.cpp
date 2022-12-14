@@ -14,6 +14,7 @@ ASceneItemActor::ASceneItemActor()
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
 	BillboardComponent = CreateDefaultSubobject<UBillboardComponent>(TEXT("BillboardComp"));
 	BillboardComponent->SetupAttachment(RootComponent);
+	bReplicates = true;
 }
 
 // Called when the game starts or when spawned

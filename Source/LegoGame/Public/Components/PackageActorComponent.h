@@ -31,6 +31,11 @@ protected:
 
 	int32 GetFreeSite();
 	void SpawnNearSceneItemActor(int32 OutID);
+	//Net
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_PutonSkin(ESkinType Type, int32 ID);
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_PutonSkin(ASceneItemActor* SceneItemActor, ESkinType Type);
 	
 public:
 	NotifyNearItemChange NearItemEnter;
